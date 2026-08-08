@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Открытка</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================
+       СБРОС И БАЗОВЫЕ СТИЛИ (Матовый розовый)
+       ========================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg-color: #faf3f6;
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --text-color: #5a4b53;
+      --accent-pink: #e8b4c8;
+      --soft-pink: #f4d3e0;
+      --tile-empty-border: #e6d0dc;
+      --tile-filled-border: #c896ab;
+      --color-correct: #8fcb9b;  /* Пастельно-зеленый */
+      --color-present: #eec170;  /* Пастельно-желтый */
+      --color-absent: #c5b4bd;   /* Пастельно-серый */
+      --key-bg: rgba(240, 226, 233, 0.85);
+      --shadow-color: rgba(180, 130, 155, 0.15);
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background-color: var(--bg-color);
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-color);
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      position: relative;
+    }
+
+    /* ==========================================
+       ЦВЕТОЧНЫЙ ФОН И ПАДАЮЩИЕ ЦВЕТЫ
+       ========================================== */
+    .flowers-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .static-flower {
+      position: absolute;
+      user-select: none;
+      opacity: 0.35;
+      filter: blur(0.3px);
+      animation: floatStatic 6s infinite ease-in-out alternate;
+    }
+
+    .falling-flower {
+      position: absolute;
+      top: -40px;
+      user-select: none;
+      pointer-events: none;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(105vh) rotate(360deg);
+        opacity: 0.2;
+      }
+    }
+
+    @keyframes floatStatic {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-8px) rotate(10deg); }
+    }
+
+    /* ==========================================
+       ЭКРАНЫ (SCROLL)
+       ========================================== */
+    .screen {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* --- ПЕРВЫЙ ЭКРАН --- */
+    .screen-1 {
+      text-align: center;
+    }
+
+    .message-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(8px);
+      padding: 32px 24px;
+      border-radius: 28px;
+      box-shadow: 0 12px 32px var(--shadow-color);
+      max-width: 500px;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      
+      /* Анимация плавного появления */
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.2s;
+    }
+
+    .message-text {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      font-weight: 600;
+      color: var(--text-color);
+      text-align: left;
+      white-space: pre-line;
+      letter-spacing: 0.2px;
+    }
+
+    .scroll-indicator {
+      margin-top: 30px;
+      font-size: 1.2rem;
+      opacity: 0;
+      animation: fadeIn 1s forwards 1.5s, float 2s infinite ease-in-out 2s;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* --- ВТОРОЙ ЭКРАН (WORDLE) --- */
+    .screen-2 {
+      justify-content: flex-start;
+      padding-top: 30px;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* Сетка Wordle */
+    .board {
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      grid-gap: 8px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+    }
+
+    .tile {
+      width: 52px;
+      height: 52px;
+      border: 2px solid var(--tile-empty-border);
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      transition: border-color 0.15s ease, transform 0.1s ease, background-color 0.3s ease;
+      user-select: none;
+    }
+
+    .tile[data-state="filled"] {
+      border-color: var(--tile-filled-border);
+      animation: pop 0.15s ease-in-out;
+    }
+
+    .tile[data-state="correct"] {
+      background-color: var(--color-correct);
+      border-color: var(--color-correct);
+      color: #ffffff;
+    }
+
+    .tile[data-state="present"] {
+      background-color: var(--color-present);
+      border-color: var(--color-present);
+      color: #ffffff;
+    }
+
+    .tile[data-state="absent"] {
+      background-color: var(--color-absent);
+      border-color: var(--color-absent);
+      color: #ffffff;
+    }
+
+    /* Анимация переворота плитки */
+    .tile.flip {
+      animation: flipTile 0.5s ease forwards;
+    }
+
+    /* Слова "я" и "тебя" по бокам от победного слова */
+    .phrase-side {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #d47a9d;
+      opacity: 0;
+      max-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: opacity 1s ease, max-width 1s ease, margin 1s ease, transform 1s ease;
+      transform: scale(0.5);
+    }
+
+    .phrase-side.visible {
+      opacity: 1;
+      max-width: 100px;
+      transform: scale(1);
+    }
+
+    .phrase-side.left {
+      margin-right: 8px;
+    }
+
+    .phrase-side.right {
+      margin-left: 8px;
+    }
+
+    /* Виртуальная клавиатура */
+    .keyboard {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: auto;
+      padding-bottom: 10px;
+    }
+
+    .kb-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .key {
+      background-color: var(--key-bg);
+      border: none;
+      border-radius: 8px;
+      height: 48px;
+      min-width: 28px;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-color);
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .key:active {
+      transform: scale(0.95);
+      background-color: var(--soft-pink);
+    }
+
+    .key.wide {
+      flex: 1.5;
+      font-size: 0.8rem;
+    }
+
+    .key[data-state="correct"] {
+      background-color: var(--color-correct);
+      color: #fff;
+    }
+
+    .key[data-state="present"] {
+      background-color: var(--color-present);
+      color: #fff;
+    }
+
+    .key[data-state="absent"] {
+      background-color: var(--color-absent);
+      color: #fff;
+      opacity: 0.6;
+    }
+
+    /* ==========================================
+       АНИМАЦИИ
+       ========================================== */
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 0.8; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(8px); }
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes flipTile {
+      0% { transform: rotateX(0); }
+      50% { transform: rotateX(90deg); }
+      100% { transform: rotateX(0); }
+    }
+
+    /* Сердечки при победе */
+    .heart-particle {
+      position: fixed;
+      pointer-events: none;
+      font-size: 20px;
+      animation: floatUp 3s ease-out forwards;
+      z-index: 100;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-100vh) scale(1.5) rotate(20deg); }
+    }
+
+    /* Адаптивность для совсем маленьких экранов */
+    @media (max-width: 360px) {
+      .tile {
+        width: 44px;
+        height: 44px;
+        font-size: 1.3rem;
+      }
+      .key {
+        height: 42px;
+        font-size: 0.85rem;
+      }
+      .message-card {
+        padding: 24px 18px;
+      }
+      .message-text {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="flowers-bg" id="flowersBg"></div>
+
+  <section class="screen screen-1">
+    <div class="message-card">
+      <p class="message-text">Ксюша, ты самый важный человек в моей жизни. Просто знай: это лучшие 4,5 месяца в моей жизни. Я тебя очень люблю. Сейчас 5 часов ночи 8 августа, я сижу и пишу этот текст, потом буду делать этот сайт. 7 августа я осознал, насколько я никчёмный парень. Когда я увидел, насколько сильно ты постаралась над просто обычной передачкой, сколько сил и средств вложила — я понял, что готов ради тебя реально на всё. Ксюша, я очень постараюсь развиваться и делать тебя счастливой каждый день. Я тебя невероятно люблю</p>
+    </div>
+    <div class="scroll-indicator" onclick="scrollToGame()">✨ 🤍 ✨</div>
+  </section>
+
+  <section class="screen screen-2" id="gameScreen">
+    <div class="game-container">
+      <div class="board" id="board"></div>
+      <div class="keyboard" id="keyboard"></div>
+    </div>
+  </section>
+
+  <script>
+    /* ==========================================
+       СОЗДАНИЕ ЦВЕТОЧНОГО ФОНА
+       ========================================== */
+    const FLOWER_ICONS = ["🌸", "🌺", "🌼", "🌸", "🌷"];
+
+    function createFlowerBackground() {
+      const container = document.getElementById("flowersBg");
+      
+      // 1. Статичные маленькие цветочки по всему экрану
+      const staticCount = 20;
+      for (let i = 0; i < staticCount; i++) {
+        const flower = document.createElement("div");
+        flower.className = "static-flower";
+        flower.innerText = FLOWER_ICONS[Math.floor(Math.random() * FLOWER_ICONS.length)];
+        flower.style.left = Math.random() * 95 + "vw";
+        flower.style.top = Math.random() * 95 + "vh";
+        flower.style.fontSize = (Math.random() * 12 + 12) + "px";
+        flower.style.animationDelay = (Math.random() * 5) + "s";
+        container.appendChild(flower);
+      }
+
+      // 2. Падающие цветочки (эффект снега)
+      const fallingCount = 15;
+      for (let i = 0; i < fallingCount; i++) {
+        createFallingFlower(container);
+      }
+    }
+
+    function createFallingFlower(container) {
+      const flower = document.createElement("div");
+      flower.className = "falling-flower";
+      flower.innerText = FLOWER_ICONS[Math.floor(Math.random() * FLOWER_ICONS.length)];
+      flower.style.left = Math.random() * 100 + "vw";
+      flower.style.fontSize = (Math.random() * 10 + 10) + "px";
+      
+      const duration = Math.random() * 5 + 6; // Длительность падения от 6 до 11 сек
+      const delay = Math.random() * 8; // Задержка перед стартом
+      
+      flower.style.animationDuration = duration + "s";
+      flower.style.animationDelay = delay + "s";
+      
+      container.appendChild(flower);
+    }
+
+    /* ==========================================
+       ЛОГИКА МИНИ-ИГРЫ WORDLE
+       ========================================== */
+    const TARGET_WORD = "люблю";
+    const MAX_ATTEMPTS = 6;
+    const WORD_LENGTH = 5;
+
+    let currentRow = 0;
+    let currentTile = 0;
+    let isGameOver = false;
+
+    const boardElement = document.getElementById("board");
+    const keyboardElement = document.getElementById("keyboard");
+
+    const KEYBOARD_ROWS = [
+      ["Й", "Ц", "У", "К", "Е", "Н", "Г", "Ш", "Щ", "З", "Х", "Ъ"],
+      ["Ф", "Ы", "В", "А", "П", "Р", "О", "Л", "Д", "Ж", "Э"],
+      ["ENTER", "Я", "Ч", "С", "М", "И", "Т", "Ь", "Б", "Ю", "⌫"]
+    ];
+
+    function initBoard() {
+      boardElement.innerHTML = "";
+      for (let r = 0; r < MAX_ATTEMPTS; r++) {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.id = `row-${r}`;
+
+        const leftWord = document.createElement("span");
+        leftWord.className = "phrase-side left";
+        leftWord.innerText = "я";
+        row.appendChild(leftWord);
+
+        for (let c = 0; c < WORD_LENGTH; c++) {
+          const tile = document.createElement("div");
+          tile.className = "tile";
+          tile.id = `tile-${r}-${c}`;
+          row.appendChild(tile);
+        }
+
+        const rightWord = document.createElement("span");
+        rightWord.className = "phrase-side right";
+        rightWord.innerText = "тебя";
+        row.appendChild(rightWord);
+
+        boardElement.appendChild(row);
+      }
+    }
+
+    function initKeyboard() {
+      keyboardElement.innerHTML = "";
+      KEYBOARD_ROWS.forEach(rowKeys => {
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "kb-row";
+
+        rowKeys.forEach(key => {
+          const btn = document.createElement("button");
+          btn.className = "key";
+          btn.innerText = key;
+          btn.setAttribute("data-key", key);
+
+          if (key === "ENTER" || key === "⌫") {
+            btn.classList.add("wide");
+          }
+
+          btn.addEventListener("click", () => handleKeyPress(key));
+          rowDiv.appendChild(btn);
+        });
+
+        keyboardElement.appendChild(rowDiv);
+      });
+    }
+
+    function handleKeyPress(key) {
+      if (isGameOver) return;
+
+      const upperKey = key.toUpperCase();
+
+      if (upperKey === "⌫" || upperKey === "BACKSPACE") {
+        deleteLetter();
+      } else if (upperKey === "ENTER") {
+        submitGuess();
+      } else if (/^[А-ЯЁ]$/i.test(upperKey)) {
+        addLetter(upperKey.toLowerCase());
+      }
+    }
+
+    function addLetter(letter) {
+      if (currentTile < WORD_LENGTH && currentRow < MAX_ATTEMPTS) {
+        const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
+        tile.innerText = letter;
+        tile.setAttribute("data-state", "filled");
+        currentTile++;
+      }
+    }
+
+    function deleteLetter() {
+      if (currentTile > 0) {
+        currentTile--;
+        const tile = document.getElementById(`tile-${currentRow}-${currentTile}`);
+        tile.innerText = "";
+        tile.removeAttribute("data-state");
+      }
+    }
+
+    function submitGuess() {
+      if (currentTile < WORD_LENGTH) return;
+
+      let guessArr = [];
+      for (let c = 0; c < WORD_LENGTH; c++) {
+        const tile = document.getElementById(`tile-${currentRow}-${c}`);
+        guessArr.push(tile.innerText.toLowerCase());
+      }
+      const guess = guessArr.join("");
+
+      const targetArr = TARGET_WORD.split("");
+      const result = Array(WORD_LENGTH).fill("absent");
+      const targetLetterCounts = {};
+
+      for (let char of targetArr) {
+        targetLetterCounts[char] = (targetLetterCounts[char] || 0) + 1;
+      }
+
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (guessArr[i] === targetArr[i]) {
+          result[i] = "correct";
+          targetLetterCounts[guessArr[i]]--;
+        }
+      }
+
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (result[i] !== "correct") {
+          if (targetLetterCounts[guessArr[i]] > 0) {
+            result[i] = "present";
+            targetLetterCounts[guessArr[i]]--;
+          }
+        }
+      }
+
+      for (let c = 0; c < WORD_LENGTH; c++) {
+        const tile = document.getElementById(`tile-${currentRow}-${c}`);
+        const letter = guessArr[c];
+        const state = result[c];
+
+        setTimeout(() => {
+          tile.classList.add("flip");
+          tile.setAttribute("data-state", state);
+          updateKeyboardState(letter, state);
+        }, c * 180);
+      }
+
+      // Если отгадано правильно
+      if (guess === TARGET_WORD) {
+        isGameOver = true;
+        setTimeout(() => {
+          revealFinalPhrase(currentRow);
+        }, WORD_LENGTH * 180 + 200);
+      } else {
+        currentRow++;
+        currentTile = 0;
+        
+        // Перезапуск игры при окончании попыток
+        if (currentRow === MAX_ATTEMPTS) {
+          setTimeout(() => {
+            resetGame();
+          }, WORD_LENGTH * 180 + 600);
+        }
+      }
+    }
+
+    // Сброс и перезапуск игры
+    function resetGame() {
+      currentRow = 0;
+      currentTile = 0;
+      isGameOver = false;
+      initBoard();
+      initKeyboard();
+    }
+
+    function updateKeyboardState(letter, state) {
+      const keyBtn = document.querySelector(`.key[data-key="${letter.toUpperCase()}"]`);
+      if (!keyBtn) return;
+
+      const currentState = keyBtn.getAttribute("data-state");
+      if (currentState === "correct") return;
+      if (currentState === "present" && state === "absent") return;
+
+      keyBtn.setAttribute("data-state", state);
+    }
+
+    function revealFinalPhrase(rowIndex) {
+      const row = document.getElementById(`row-${rowIndex}`);
+      const leftWord = row.querySelector(".phrase-side.left");
+      const rightWord = row.querySelector(".phrase-side.right");
+
+      leftWord.classList.add("visible");
+      rightWord.classList.add("visible");
+
+      createHearts();
+    }
+
+    function createHearts() {
+      for (let i = 0; i < 25; i++) {
+        setTimeout(() => {
+          const heart = document.createElement("div");
+          heart.className = "heart-particle";
+          heart.innerText = ["🤍", "✨", "🌸", "💖"][Math.floor(Math.random() * 4)];
+          heart.style.left = Math.random() * 100 + "vw";
+          heart.style.top = "100vh";
+          document.body.appendChild(heart);
+
+          setTimeout(() => heart.remove(), 3000);
+        }, i * 120);
+      }
+    }
+
+    function scrollToGame() {
+      document.getElementById("gameScreen").scrollIntoView({ behavior: "smooth" });
+    }
+
+    document.addEventListener("keydown", (e) => {
+      handleKeyPress(e.key);
+    });
+
+    // Запуск инициализации
+    createFlowerBackground();
+    initBoard();
+    initKeyboard();
+  </script>
+</body>
+</html>
