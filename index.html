@@ -2,8 +2,9 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Открытка</title>
+  <!-- Подключение мягкого эстетичного шрифта -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -30,7 +31,7 @@
       --color-correct: #8fcb9b;  /* Пастельно-зеленый */
       --color-present: #eec170;  /* Пастельно-желтый */
       --color-absent: #c5b4bd;   /* Пастельно-серый */
-      --key-bg: rgba(240, 226, 233, 0.85);
+      --key-bg: rgba(240, 226, 233, 0.9);
       --shadow-color: rgba(180, 130, 155, 0.15);
     }
 
@@ -101,7 +102,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 24px 16px;
+      padding: 20px 12px;
       position: relative;
       z-index: 1;
     }
@@ -148,24 +149,28 @@
 
     /* --- ВТОРОЙ ЭКРАН (WORDLE) --- */
     .screen-2 {
-      justify-content: flex-start;
-      padding-top: 30px;
+      justify-content: space-between;
+      padding: 16px 6px;
     }
 
     .game-container {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: space-between;
       width: 100%;
       max-width: 420px;
+      height: 100%;
+      margin: 0 auto;
     }
 
     /* Сетка Wordle */
     .board {
       display: grid;
       grid-template-rows: repeat(6, 1fr);
-      grid-gap: 8px;
-      margin-bottom: 20px;
+      grid-gap: 6px;
+      margin-top: auto;
+      margin-bottom: auto;
       width: 100%;
     }
 
@@ -173,19 +178,19 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       position: relative;
     }
 
     .tile {
-      width: 52px;
-      height: 52px;
+      width: clamp(40px, 11vw, 52px);
+      height: clamp(40px, 11vw, 52px);
       border: 2px solid var(--tile-empty-border);
       border-radius: 12px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 1.5rem;
+      font-size: clamp(1.2rem, 4.5vw, 1.5rem);
       font-weight: 800;
       text-transform: uppercase;
       background-color: var(--card-bg);
@@ -224,7 +229,7 @@
 
     /* Слова "я" и "тебя" по бокам от победного слова */
     .phrase-side {
-      font-size: 1.6rem;
+      font-size: clamp(1.2rem, 4vw, 1.6rem);
       font-weight: 800;
       color: #d47a9d;
       opacity: 0;
@@ -237,62 +242,64 @@
 
     .phrase-side.visible {
       opacity: 1;
-      max-width: 100px;
+      max-width: 80px;
       transform: scale(1);
     }
 
     .phrase-side.left {
-      margin-right: 8px;
+      margin-right: 6px;
     }
 
     .phrase-side.right {
-      margin-left: 8px;
+      margin-left: 6px;
     }
 
-    /* Виртуальная клавиатура */
+    /* АДАПТИВНАЯ ВИРТУАЛЬНАЯ КЛАВИАТУРА */
     .keyboard {
       width: 100%;
+      max-width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      margin-top: auto;
-      padding-bottom: 10px;
+      gap: 5px;
+      padding-bottom: 8px;
+      touch-action: manipulation;
     }
 
     .kb-row {
       display: flex;
       justify-content: center;
-      gap: 4px;
+      gap: 3px;
       width: 100%;
     }
 
     .key {
       background-color: var(--key-bg);
       border: none;
-      border-radius: 8px;
-      height: 48px;
-      min-width: 28px;
+      border-radius: 6px;
+      height: clamp(38px, 6vh, 48px);
+      min-width: 0; /* Разрешает кнопочкам сжиматься на узких экранах */
       flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
       font-family: inherit;
-      font-size: 0.95rem;
+      font-size: clamp(0.7rem, 2.8vw, 0.95rem);
       font-weight: 700;
       color: var(--text-color);
       cursor: pointer;
       user-select: none;
+      padding: 0;
       transition: background-color 0.2s ease, transform 0.1s ease;
     }
 
     .key:active {
-      transform: scale(0.95);
+      transform: scale(0.93);
       background-color: var(--soft-pink);
     }
 
     .key.wide {
-      flex: 1.5;
-      font-size: 0.8rem;
+      flex: 1.4;
+      font-size: clamp(0.6rem, 2.3vw, 0.8rem);
     }
 
     .key[data-state="correct"] {
@@ -356,30 +363,26 @@
       100% { opacity: 0; transform: translateY(-100vh) scale(1.5) rotate(20deg); }
     }
 
-    /* Адаптивность для совсем маленьких экранов */
-    @media (max-width: 360px) {
-      .tile {
-        width: 44px;
-        height: 44px;
-        font-size: 1.3rem;
-      }
-      .key {
-        height: 42px;
-        font-size: 0.85rem;
-      }
+    /* Дополнительные подгонки для самых маленьких экранов */
+    @media (max-width: 350px) {
       .message-card {
-        padding: 24px 18px;
+        padding: 20px 14px;
       }
       .message-text {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+      }
+      .kb-row {
+        gap: 2px;
       }
     }
   </style>
 </head>
 <body>
 
+  <!-- ЦВЕТОЧНЫЙ ЭФФЕКТ НА ФОНЕ -->
   <div class="flowers-bg" id="flowersBg"></div>
 
+  <!-- ПЕРВЫЙ ЭКРАН -->
   <section class="screen screen-1">
     <div class="message-card">
       <p class="message-text">Ксюша, ты самый важный человек в моей жизни. Просто знай: это лучшие 4,5 месяца в моей жизни. Я тебя очень люблю. Сейчас 5 часов ночи 8 августа, я сижу и пишу этот текст, потом буду делать этот сайт. 7 августа я осознал, насколько я никчёмный парень. Когда я увидел, насколько сильно ты постаралась над просто обычной передачкой, сколько сил и средств вложила — я понял, что готов ради тебя реально на всё. Ксюша, я очень постараюсь развиваться и делать тебя счастливой каждый день. Я тебя невероятно люблю</p>
@@ -387,6 +390,7 @@
     <div class="scroll-indicator" onclick="scrollToGame()">✨ 🤍 ✨</div>
   </section>
 
+  <!-- ВТОРОЙ ЭКРАН (WORDLE) -->
   <section class="screen screen-2" id="gameScreen">
     <div class="game-container">
       <div class="board" id="board"></div>
@@ -430,8 +434,8 @@
       flower.style.left = Math.random() * 100 + "vw";
       flower.style.fontSize = (Math.random() * 10 + 10) + "px";
       
-      const duration = Math.random() * 5 + 6; // Длительность падения от 6 до 11 сек
-      const delay = Math.random() * 8; // Задержка перед стартом
+      const duration = Math.random() * 5 + 6;
+      const delay = Math.random() * 8;
       
       flower.style.animationDuration = duration + "s";
       flower.style.animationDelay = delay + "s";
@@ -589,7 +593,7 @@
         }, c * 180);
       }
 
-      // Если отгадано правильно
+      // Победа
       if (guess === TARGET_WORD) {
         isGameOver = true;
         setTimeout(() => {
@@ -599,7 +603,7 @@
         currentRow++;
         currentTile = 0;
         
-        // Перезапуск игры при окончании попыток
+        // Авто-перезапуск при исчерпании попыток
         if (currentRow === MAX_ATTEMPTS) {
           setTimeout(() => {
             resetGame();
@@ -608,7 +612,6 @@
       }
     }
 
-    // Сброс и перезапуск игры
     function resetGame() {
       currentRow = 0;
       currentTile = 0;
@@ -662,7 +665,7 @@
       handleKeyPress(e.key);
     });
 
-    // Запуск инициализации
+    // Старт
     createFlowerBackground();
     initBoard();
     initKeyboard();
